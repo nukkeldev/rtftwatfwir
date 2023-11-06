@@ -139,8 +139,9 @@ impl Camera {
         } else {
             self.defocus_disk_sample()
         };
+        let ray_time = rand::random::<f64>();
 
-        Ray::new(ray_origin, pixel_sample - ray_origin)
+        Ray::new_with_time(ray_origin, pixel_sample - ray_origin, ray_time)
     }
 
     /// Returns a random point in the camera defocus disk.

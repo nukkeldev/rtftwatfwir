@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+use glam::DVec3;
 use ray_tracing::camera::Camera;
 use ray_tracing::hittable_list::HittableList;
 use ray_tracing::material::{Dielectric, Lambertian, Metal};
@@ -11,7 +12,7 @@ fn main() -> Result<()> {
 
     let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
 
-    world.add(Sphere::new(
+    world.add(Sphere::new_stationary(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         ground_material,
@@ -41,26 +42,30 @@ fn main() -> Result<()> {
                     Dielectric::new(1.5)
                 };
 
-                world.add(Sphere::new(center, 0.2, material));
+                if choose_mat < 0.8 {
+                    world.add(Sphere::new_moving(center, center + DVec3::new(0.0, rand::random::<f64>() / 2.0, 0.0), 0.2, material));
+                } else {
+                    world.add(Sphere::new_stationary(center, 0.2, material));
+                }
             }
         }
     }
 
     let material1 = Dielectric::new(1.5);
-    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material1));
+    world.add(Sphere::new_stationary(Point3::new(0.0, 1.0, 0.0), 1.0, material1));
 
     let material2 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
-    world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, material2));
+    world.add(Sphere::new_stationary(Point3::new(-4.0, 1.0, 0.0), 1.0, material2));
 
     let material3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
-    world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, material3));
+    world.add(Sphere::new_stationary(Point3::new(4.0, 1.0, 0.0), 1.0, material3));
 
     // Camera
     let mut camera = Camera::new();
 
     camera.aspect_ratio = 16.0 / 9.0;
-    camera.image_width = 1200;
-    camera.samples_per_pixel = 500;
+    camera.image_width = 400;
+    camera.samples_per_pixel = 100;
     camera.max_depth = 50;
 
     camera.vfov = 20.0;
