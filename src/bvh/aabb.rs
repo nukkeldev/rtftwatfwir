@@ -1,4 +1,4 @@
-use crate::{interval::Interval, ray::Ray, Point3};
+use crate::util::{interval::Interval, ray::Ray, Point3};
 
 #[derive(Debug, Default, Clone)]
 pub struct AABB {

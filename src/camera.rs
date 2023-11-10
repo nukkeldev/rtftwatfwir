@@ -8,10 +8,9 @@ use anyhow::Result;
 use glam::DVec3;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-use crate::interval::Interval;
+use crate::hittable::Hittable;
 use crate::material::MaterialT;
-use crate::{hittable::Hittable, ray::Ray, Color, Point3};
-use crate::{random_in_unit_disk, write_color};
+use crate::util::all::*;
 
 #[derive(Debug)]
 pub struct Camera {

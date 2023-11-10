@@ -1,8 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{
-    dvec3_near_zero, hittable::HitRecord, random_unit_vector, ray::Ray, reflect, refract, Color,
-};
+use crate::{hittable::HitRecord, util::all::*, util::vec::dvec3_near_zero, Color};
 
 pub trait MaterialT {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)>;
@@ -44,7 +42,10 @@ impl MaterialT for Lambertian {
             scatter_dir = rec.normal;
         }
 
-        Some((Ray::new_with_time(rec.p, scatter_dir, r_in.time), self.albedo))
+        Some((
+            Ray::new_with_time(rec.p, scatter_dir, r_in.time),
+            self.albedo,
+        ))
     }
 }
 
@@ -67,7 +68,11 @@ impl MaterialT for Metal {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)> {
         let reflected = reflect(r_in.direction.normalize(), rec.normal);
         let out = (
-            Ray::new_with_time(rec.p, reflected + self.fuzz * random_unit_vector(), r_in.time),
+            Ray::new_with_time(
+                rec.p,
+                reflected + self.fuzz * random_unit_vector(),
+                r_in.time,
+            ),
             self.albedo,
         );
 

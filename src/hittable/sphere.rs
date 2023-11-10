@@ -1,12 +1,12 @@
 use glam::DVec3;
 
 use crate::{
-    hittable::{HitRecord, Hittable},
-    interval::Interval,
+    bvh::aabb::AABB,
     material::Material,
-    ray::Ray,
-    Point3, aabb::AABB,
+    util::{all::Ray, interval::Interval, Point3},
 };
+
+use super::{HitRecord, Hittable};
 
 #[derive(Debug, Clone)]
 pub struct Sphere {
@@ -17,7 +17,7 @@ pub struct Sphere {
     is_moving: bool,
     movement_vec: DVec3,
 
-    bbox: AABB
+    bbox: AABB,
 }
 
 impl Sphere {
@@ -29,7 +29,7 @@ impl Sphere {
             material,
             is_moving: false,
             movement_vec: DVec3::ZERO,
-            bbox: AABB::from_points(origin - rvec, origin + rvec)
+            bbox: AABB::from_points(origin - rvec, origin + rvec),
         }
     }
 
@@ -45,7 +45,7 @@ impl Sphere {
             material,
             is_moving: true,
             movement_vec: endpoint - origin,
-            bbox
+            bbox,
         }
     }
 

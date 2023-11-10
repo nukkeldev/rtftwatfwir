@@ -1,8 +1,13 @@
-use std::fmt::Debug;
-
 use glam::DVec3;
 
-use crate::{interval::Interval, material::Material, ray::Ray, Point3, aabb::AABB};
+use crate::{
+    bvh::aabb::AABB,
+    material::Material,
+    util::{interval::Interval, ray::Ray, Point3},
+};
+
+pub mod hittable_list;
+pub mod sphere;
 
 #[derive(Debug)]
 pub struct HitRecord<'mat> {

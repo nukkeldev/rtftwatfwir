@@ -1,13 +1,11 @@
 use std::{cmp::Ordering, sync::Arc};
 
 use crate::{
-    aabb::AABB,
-    hittable::{HitRecord, Hittable},
-    hittable_list::HittableList,
-    interval::Interval,
-    random_int_range,
-    ray::Ray,
+    hittable::{hittable_list::HittableList, HitRecord, Hittable},
+    util::{all::Ray, interval::Interval, random::random_int_in_range},
 };
+
+use super::aabb::AABB;
 
 pub struct BVHNode {
     pub left: Arc<dyn Hittable>,
@@ -21,7 +19,7 @@ impl BVHNode {
     }
 
     fn new(objects: &[Arc<dyn Hittable>]) -> Self {
-        let axis = random_int_range(0, 2) as usize;
+        let axis = random_int_in_range(0, 2) as usize;
 
         match objects.len() {
             1 => {

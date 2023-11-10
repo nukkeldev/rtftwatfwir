@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use crate::{
-    aabb::AABB,
-    hittable::{HitRecord, Hittable},
-    interval::Interval,
-    ray::Ray,
+    bvh::aabb::AABB,
+    util::{interval::Interval, ray::Ray},
 };
+
+use super::{HitRecord, Hittable};
 
 #[derive(Default)]
 pub struct HittableList {

@@ -1,12 +1,17 @@
 use anyhow::Result;
 
 use glam::DVec3;
-use ray_tracing::bvh_node::BVHNode;
-use ray_tracing::camera::Camera;
-use ray_tracing::hittable_list::HittableList;
-use ray_tracing::material::{Dielectric, Lambertian, Metal};
-use ray_tracing::sphere::Sphere;
-use ray_tracing::{random_range, random_ranged_f64s, Color, Point3};
+use ray_tracing::{
+    bvh::node::BVHNode,
+    camera::Camera,
+    hittable::{hittable_list::HittableList, sphere::Sphere},
+    material::*,
+    util::{
+        color::Color,
+        random::{random_f64, random_vec_in_range},
+        Point3,
+    },
+};
 
 fn main() -> Result<()> {
     let mut world = HittableList::new();
@@ -31,12 +36,12 @@ fn main() -> Result<()> {
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let material = if choose_mat < 0.8 {
                     // Diffuse
-                    let albedo = random_range(0.0, 1.0) * random_range(0.0, 1.0);
+                    let albedo = random_vec_in_range(0.0, 1.0) * random_vec_in_range(0.0, 1.0);
                     Lambertian::new(albedo)
                 } else if choose_mat < 0.95 {
                     // Metal
-                    let albedo = random_range(0.5, 1.0);
-                    let fuzz = random_ranged_f64s::<1>(0.0, 0.5)[0];
+                    let albedo = random_vec_in_range(0.5, 1.0);
+                    let fuzz = random_f64(0.0, 0.5);
                     Metal::new(albedo, fuzz)
                 } else {
                     // Glass
