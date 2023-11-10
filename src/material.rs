@@ -1,12 +1,14 @@
-use std::fmt::Debug;
+use std::sync::Arc;
 
-use crate::{hittable::HitRecord, util::all::*, util::vec::dvec3_near_zero, Color};
+use crate::{
+    hittable::HitRecord, texture::Texture, util::all::*, util::vec::dvec3_near_zero, Color,
+};
 
 pub trait MaterialT {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)>;
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone)]
 pub enum Material {
     Lambertian(Lambertian),
     Metal(Metal),
@@ -23,14 +25,16 @@ impl MaterialT for Material {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Clone)]
 pub struct Lambertian {
-    pub albedo: Color,
+    pub texture: Arc<dyn Texture>,
 }
 
 impl Lambertian {
-    pub fn new(albedo: Color) -> Material {
-        Material::Lambertian(Self { albedo })
+    pub fn new(texture: impl Texture + 'static) -> Material {
+        Material::Lambertian(Self {
+            texture: Arc::new(texture),
+        })
     }
 }
 
@@ -44,12 +48,12 @@ impl MaterialT for Lambertian {
 
         Some((
             Ray::new_with_time(rec.p, scatter_dir, r_in.time),
-            self.albedo,
+            self.texture.sample(rec.u, rec.v, rec.p),
         ))
     }
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Clone)]
 pub struct Metal {
     pub albedo: Color,
     pub fuzz: f64,
@@ -84,7 +88,7 @@ impl MaterialT for Metal {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Clone)]
 pub struct Dielectric {
     pub ir: f64,
 }

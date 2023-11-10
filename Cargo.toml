@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 glam = "0.24.2"
+load_image = "3.1.4"
 rand = "0.8.5"
 rayon = "1.8.0"

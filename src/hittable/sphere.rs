@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use glam::DVec3;
 
 use crate::{
@@ -8,7 +10,7 @@ use crate::{
 
 use super::{HitRecord, Hittable};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Sphere {
     origin: Point3,
     radius: f64,
@@ -52,6 +54,20 @@ impl Sphere {
     pub fn position(&self, time: f64) -> Point3 {
         self.origin + time * self.movement_vec
     }
+
+    fn get_sphere_uv(p: Point3) -> (f64, f64) {
+        // p: a given point on the sphere of radius one, centered at the origin.
+        // u: returned value [0,1] of angle around the Y axis from X=-1.
+        // v: returned value [0,1] of angle from Y=-1 to Y=+1.
+        //     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+        //     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+        //     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+
+        let theta = (-p.y).acos();
+        let phi = (-p.z).atan2(p.x) + PI;
+
+        (phi / (2.0 * PI), theta / PI)
+    }
 }
 
 impl Hittable for Sphere {
@@ -83,7 +99,16 @@ impl Hittable for Sphere {
 
         let p = r.at(root);
         let outward_normal = (p - self.origin) / self.radius;
-        Some(HitRecord::new(r, root, p, &self.material, outward_normal))
+        let (u, v) = Self::get_sphere_uv(outward_normal);
+        Some(HitRecord::new(
+            r,
+            root,
+            p,
+            u,
+            v,
+            &self.material,
+            outward_normal,
+        ))
     }
 
     fn bounding_box(&self) -> &AABB {

@@ -21,7 +21,13 @@ impl HittableList {
         }
     }
 
-    pub fn add<T: Hittable + 'static>(&mut self, object: T) {
+    pub fn new_with(object: impl Hittable + 'static) -> Self {
+        let mut this = Self::new();
+        this.add(object);
+        this
+    }
+
+    pub fn add(&mut self, object: impl Hittable + 'static) {
         self.bbox.expand(object.bounding_box());
         self.objects.push(Arc::new(object));
     }
