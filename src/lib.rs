@@ -8,6 +8,8 @@ pub mod interval;
 pub mod material;
 pub mod ray;
 pub mod sphere;
+pub mod aabb;
+pub mod bvh_node;
 
 pub type Point3 = glam::DVec3;
 pub type Color = glam::DVec3;
@@ -41,6 +43,10 @@ pub fn random_ranged_f64s<const N: usize>(min: f64, max: f64) -> [f64; N] {
 
 pub fn random_range(min: f64, max: f64) -> Color {
     DVec3::from(random_ranged_f64s::<3>(min, max))
+}
+
+pub fn random_int_range(min: i32, max: i32) -> i32 {
+    random_ranged_f64s::<1>(min as f64, max as f64)[0].round() as i32
 }
 
 pub fn random_in_unit_sphere() -> DVec3 {

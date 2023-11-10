@@ -1,18 +1,37 @@
 #[derive(Debug, Clone, Copy)]
-pub struct Interval<T> {
-    pub min: T,
-    pub max: T,
+pub struct Interval {
+    pub min: f64,
+    pub max: f64,
 }
 
-impl<T> Interval<T>
-where
-    T: PartialEq + PartialOrd,
-{
-    pub fn new(min: T, max: T) -> Self {
+impl Interval {
+    pub fn new(min: f64, max: f64) -> Self {
         Self { min, max }
     }
 
-    pub fn contains(&self, n: T) -> bool {
+    pub fn from_intervals(a: Self, b: Self) -> Self {
+        Self { min: a.min.min(b.min), max: b.max.max(b.max) }
+    }
+
+    pub fn contains(&self, n: f64) -> bool {
         self.min <= n && self.max >= n
+    }
+
+    pub fn size(&self) -> f64 {
+        self.max - self.min
+    }
+
+    pub fn expand(&self, delta: f64) -> Self {
+        let padding = delta / 2.0;
+        Self::new(self.min - padding, self.max + padding)
+    }
+}
+
+impl Default for Interval {
+    fn default() -> Self {
+        Self {
+            min: f64::INFINITY,
+            max: f64::NEG_INFINITY
+        }
     }
 }

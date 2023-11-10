@@ -1,6 +1,8 @@
+use std::fmt::Debug;
+
 use glam::DVec3;
 
-use crate::{interval::Interval, material::Material, ray::Ray, Point3};
+use crate::{interval::Interval, material::Material, ray::Ray, Point3, aabb::AABB};
 
 #[derive(Debug)]
 pub struct HitRecord<'mat> {
@@ -35,5 +37,6 @@ impl<'mat> HitRecord<'mat> {
 }
 
 pub trait Hittable: Sync + Send {
-    fn hit<'mat>(&self, r: &Ray, t_bounds: Interval<f64>) -> Option<HitRecord>;
+    fn hit<'mat>(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord>;
+    fn bounding_box(&self) -> &AABB;
 }

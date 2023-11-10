@@ -5,10 +5,10 @@ use crate::{
     interval::Interval,
     material::Material,
     ray::Ray,
-    Point3,
+    Point3, aabb::AABB,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sphere {
     origin: Point3,
     radius: f64,
@@ -16,26 +16,36 @@ pub struct Sphere {
 
     is_moving: bool,
     movement_vec: DVec3,
+
+    bbox: AABB
 }
 
 impl Sphere {
     pub fn new_stationary(origin: Point3, radius: f64, material: Material) -> Self {
+        let rvec = DVec3::new(radius, radius, radius);
         Self {
             origin,
             radius,
             material,
             is_moving: false,
-            movement_vec: DVec3::ZERO
+            movement_vec: DVec3::ZERO,
+            bbox: AABB::from_points(origin - rvec, origin + rvec)
         }
     }
 
     pub fn new_moving(origin: Point3, endpoint: Point3, radius: f64, material: Material) -> Self {
+        let rvec = DVec3::new(radius, radius, radius);
+        let box_1 = AABB::from_points(origin - rvec, origin + rvec);
+        let box_2 = AABB::from_points(endpoint - rvec, endpoint + rvec);
+        let bbox = AABB::from_boxes(&box_1, &box_2);
+
         Self {
             origin,
             radius,
             material,
             is_moving: true,
-            movement_vec: endpoint - origin
+            movement_vec: endpoint - origin,
+            bbox
         }
     }
 
@@ -45,7 +55,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit<'mat>(&'mat self, r: &Ray, t_bounds: Interval<f64>) -> Option<HitRecord> {
+    fn hit<'mat>(&'mat self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
         let position = if self.is_moving {
             self.position(r.time)
         } else {
@@ -64,9 +74,9 @@ impl Hittable for Sphere {
         let sqrt_d = discriminant.sqrt();
 
         let mut root = (-half_b - sqrt_d) / a;
-        if !t_bounds.contains(root) {
+        if !ray_t.contains(root) {
             root = (-half_b + sqrt_d) / a;
-            if !t_bounds.contains(root) {
+            if !ray_t.contains(root) {
                 return None;
             }
         }
@@ -74,5 +84,9 @@ impl Hittable for Sphere {
         let p = r.at(root);
         let outward_normal = (p - self.origin) / self.radius;
         Some(HitRecord::new(r, root, p, &self.material, outward_normal))
+    }
+
+    fn bounding_box(&self) -> &AABB {
+        &self.bbox
     }
 }

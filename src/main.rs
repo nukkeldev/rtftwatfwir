@@ -1,6 +1,7 @@
 use anyhow::Result;
 
 use glam::DVec3;
+use ray_tracing::bvh_node::BVHNode;
 use ray_tracing::camera::Camera;
 use ray_tracing::hittable_list::HittableList;
 use ray_tracing::material::{Dielectric, Lambertian, Metal};
@@ -60,11 +61,13 @@ fn main() -> Result<()> {
     let material3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
     world.add(Sphere::new_stationary(Point3::new(4.0, 1.0, 0.0), 1.0, material3));
 
+    let world = BVHNode::new(&world.objects[..]);
+
     // Camera
     let mut camera = Camera::new();
 
     camera.aspect_ratio = 16.0 / 9.0;
-    camera.image_width = 400;
+    camera.image_width = 1200;
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
 
