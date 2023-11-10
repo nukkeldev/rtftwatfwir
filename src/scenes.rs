@@ -4,7 +4,7 @@ use glam::DVec3;
 use crate::{
     bvh::node::BVHNode,
     camera::Camera,
-    hittable::{hittable_list::HittableList, sphere::Sphere},
+    hittable::{hittable_list::HittableList, quad::Quad, sphere::Sphere},
     load_image,
     material::*,
     texture::{CheckerTexture, NoiseTexture},
@@ -188,6 +188,63 @@ pub fn two_perlin_spheres() -> Result<()> {
 
     camera.vfov = 20.0;
     camera.lookfrom = Point3::new(13.0, 2.0, 3.0);
+    camera.lookat = Point3::ZERO;
+    camera.vup = DVec3::Y;
+
+    camera.defocus_angle = 0.0;
+
+    camera.render(&world)
+}
+
+pub fn quads() -> Result<()> {
+    let mut world = HittableList::new();
+
+    let left_red = Lambertian::new(Color::new(1.0, 0.2, 0.2));
+    let back_green = Lambertian::new(Color::new(0.2, 1.0, 0.2));
+    let right_blue = Lambertian::new(Color::new(0.2, 0.2, 1.0));
+    let upper_orange = Lambertian::new(Color::new(1.0, 0.5, 0.0));
+    let lower_teal = Lambertian::new(Color::new(0.2, 0.8, 0.8));
+
+    world.add(Quad::new(
+        Point3::new(-3.0, -2.0, 5.0),
+        DVec3::Z * -4.0,
+        DVec3::Y * 4.0,
+        left_red,
+    ));
+    world.add(Quad::new(
+        Point3::new(-2.0, -2.0, 0.0),
+        DVec3::X * 4.0,
+        DVec3::Y * 4.0,
+        back_green,
+    ));
+    world.add(Quad::new(
+        Point3::new(3.0, -2.0, 1.0),
+        DVec3::Z * 4.0,
+        DVec3::Y * 4.0,
+        right_blue,
+    ));
+    world.add(Quad::new(
+        Point3::new(-2.0, 3.0, 1.0),
+        DVec3::X * 4.0,
+        DVec3::Z * 4.0,
+        upper_orange,
+    ));
+    world.add(Quad::new(
+        Point3::new(-2.0, -3.0, 5.0),
+        DVec3::X * 4.0,
+        DVec3::Z * -4.0,
+        lower_teal,
+    ));
+
+    let mut camera = Camera::new();
+
+    camera.aspect_ratio = 1.0;
+    camera.image_width = 400;
+    camera.samples_per_pixel = 100;
+    camera.max_depth = 50;
+
+    camera.vfov = 80.0;
+    camera.lookfrom = Point3::new(0.0, 0.0, 9.0);
     camera.lookat = Point3::ZERO;
     camera.vup = DVec3::Y;
 

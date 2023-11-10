@@ -7,6 +7,7 @@ use crate::{
 };
 
 pub mod hittable_list;
+pub mod quad;
 pub mod sphere;
 
 pub struct HitRecord<'mat> {

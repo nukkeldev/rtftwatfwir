@@ -40,6 +40,26 @@ impl AABB {
         *self = Self::from_boxes(self, other_box);
     }
 
+    pub fn pad(&self) -> Self {
+        const DELTA: f64 = 0.0001;
+        let x = if self.x.size() >= DELTA {
+            self.x
+        } else {
+            self.x.expand(DELTA)
+        };
+        let y = if self.y.size() >= DELTA {
+            self.y
+        } else {
+            self.y.expand(DELTA)
+        };
+        let z = if self.z.size() >= DELTA {
+            self.z
+        } else {
+            self.z.expand(DELTA)
+        };
+        Self { x, y, z }
+    }
+
     pub fn axis(&self, axis: usize) -> Interval {
         match axis {
             0 => self.x,
