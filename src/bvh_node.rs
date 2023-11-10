@@ -1,11 +1,18 @@
-use std::{sync::Arc, cmp::Ordering};
+use std::{cmp::Ordering, sync::Arc};
 
-use crate::{hittable::{Hittable, HitRecord}, aabb::AABB, hittable_list::HittableList, interval::Interval, ray::Ray, random_int_range};
+use crate::{
+    aabb::AABB,
+    hittable::{HitRecord, Hittable},
+    hittable_list::HittableList,
+    interval::Interval,
+    random_int_range,
+    ray::Ray,
+};
 
 pub struct BVHNode {
     pub left: Arc<dyn Hittable>,
     pub right: Arc<dyn Hittable>,
-    pub bbox: AABB
+    pub bbox: AABB,
 }
 
 impl BVHNode {
@@ -13,7 +20,7 @@ impl BVHNode {
         Self::new(&hittable_list.objects[..])
     }
 
-    pub fn new(objects: &[Arc<dyn Hittable>]) -> Self {
+    fn new(objects: &[Arc<dyn Hittable>]) -> Self {
         let axis = random_int_range(0, 2) as usize;
 
         match objects.len() {
@@ -24,7 +31,7 @@ impl BVHNode {
                     left: obj.clone(),
                     right: obj.clone(),
                 }
-            },
+            }
             2 => {
                 let (left, right) = if Self::box_compare(&objects[0], &objects[1], axis) {
                     (objects[0].clone(), objects[1].clone())
@@ -34,27 +41,25 @@ impl BVHNode {
 
                 let bbox = AABB::from_boxes(left.bounding_box(), right.bounding_box());
 
-                Self {
-                    left,
-                    right,
-                    bbox
-                }
-            },
+                Self { left, right, bbox }
+            }
             _ => {
                 let mut objects = objects.to_vec();
-                objects.sort_by(move |a, b| if Self::box_compare(a, b, axis) { Ordering::Greater } else { Ordering::Less });
+                objects.sort_by(move |a, b| {
+                    if Self::box_compare(a, b, axis) {
+                        Ordering::Greater
+                    } else {
+                        Ordering::Less
+                    }
+                });
 
                 let mid = objects.len() / 2;
                 let left = Arc::new(BVHNode::new(&objects[0..mid]));
                 let right = Arc::new(BVHNode::new(&objects[mid..objects.len()]));
                 let bbox = AABB::from_boxes(left.bounding_box(), right.bounding_box());
 
-                Self {
-                    left,
-                    right,
-                    bbox,
-                }
-            },
+                Self { left, right, bbox }
+            }
         }
     }
 
@@ -69,7 +74,14 @@ impl Hittable for BVHNode {
             return None;
         }
 
-        self.right.hit(r, ray_t).or_else(|| self.left.hit(r, ray_t))
+        match self.left.hit(r, ray_t) {
+            Some(left_hit) => Some(
+                self.right
+                    .hit(r, Interval::new(ray_t.min, left_hit.t))
+                    .unwrap_or(left_hit),
+            ),
+            None => self.right.hit(r, ray_t),
+        }
     }
 
     fn bounding_box(&self) -> &AABB {

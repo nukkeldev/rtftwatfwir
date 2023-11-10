@@ -10,7 +10,10 @@ impl Interval {
     }
 
     pub fn from_intervals(a: Self, b: Self) -> Self {
-        Self { min: a.min.min(b.min), max: b.max.max(b.max) }
+        Self {
+            min: a.min.min(b.min),
+            max: a.max.max(b.max),
+        }
     }
 
     pub fn contains(&self, n: f64) -> bool {
@@ -31,7 +34,7 @@ impl Default for Interval {
     fn default() -> Self {
         Self {
             min: f64::INFINITY,
-            max: f64::NEG_INFINITY
+            max: f64::NEG_INFINITY,
         }
     }
 }

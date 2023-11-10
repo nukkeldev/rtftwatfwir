@@ -36,8 +36,8 @@ impl AABB {
         }
     }
 
-    pub fn expand(&self, other_box: &Self) -> Self {
-        Self::from_boxes(self, other_box)
+    pub fn expand(&mut self, other_box: &Self) {
+        *self = Self::from_boxes(self, other_box);
     }
 
     pub fn axis(&self, axis: usize) -> Interval {
@@ -61,8 +61,12 @@ impl AABB {
                 std::mem::swap(&mut t0, &mut t1);
             }
 
-            if t0 > ray_t.min { ray_t.min = t0; }
-            if t1 < ray_t.max { ray_t.max = t1; }
+            if t0 > ray_t.min {
+                ray_t.min = t0;
+            }
+            if t1 < ray_t.max {
+                ray_t.max = t1;
+            }
 
             if ray_t.max <= ray_t.min {
                 return None;

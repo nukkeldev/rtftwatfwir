@@ -1,6 +1,8 @@
 use glam::DVec3;
 use rand::{distributions::Uniform, prelude::Distribution, thread_rng};
 
+pub mod aabb;
+pub mod bvh_node;
 pub mod camera;
 pub mod hittable;
 pub mod hittable_list;
@@ -8,8 +10,6 @@ pub mod interval;
 pub mod material;
 pub mod ray;
 pub mod sphere;
-pub mod aabb;
-pub mod bvh_node;
 
 pub type Point3 = glam::DVec3;
 pub type Color = glam::DVec3;

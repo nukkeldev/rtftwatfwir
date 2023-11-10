@@ -190,6 +190,7 @@ impl Camera {
 
         let cam = &*self;
         let image_height = cam.image_height;
+        let image_width = cam.image_width;
         let (sender, recv) = channel();
 
         thread::spawn(move || {
@@ -199,6 +200,8 @@ impl Camera {
                     rows_done += 1.0;
                     println!("{}%", rows_done / image_height as f64 * 100.0);
                 } else {
+                    println!("Rendered in {} seconds!", now.elapsed().as_secs_f32());
+                    println!("Writing {} pixels...", rows_done as i32 * image_width);
                     break;
                 }
             }
@@ -220,6 +223,7 @@ impl Camera {
                 row
             })
             .collect::<Vec<_>>();
+        drop(sender);
 
         for c in colors {
             write_color(&mut file, c, self.samples_per_pixel);

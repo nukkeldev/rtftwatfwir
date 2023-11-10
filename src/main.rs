@@ -44,7 +44,12 @@ fn main() -> Result<()> {
                 };
 
                 if choose_mat < 0.8 {
-                    world.add(Sphere::new_moving(center, center + DVec3::new(0.0, rand::random::<f64>() / 2.0, 0.0), 0.2, material));
+                    world.add(Sphere::new_moving(
+                        center,
+                        center + DVec3::new(0.0, rand::random::<f64>() / 2.0, 0.0),
+                        0.2,
+                        material,
+                    ));
                 } else {
                     world.add(Sphere::new_stationary(center, 0.2, material));
                 }
@@ -53,22 +58,34 @@ fn main() -> Result<()> {
     }
 
     let material1 = Dielectric::new(1.5);
-    world.add(Sphere::new_stationary(Point3::new(0.0, 1.0, 0.0), 1.0, material1));
+    world.add(Sphere::new_stationary(
+        Point3::new(0.0, 1.0, 0.0),
+        1.0,
+        material1,
+    ));
 
     let material2 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
-    world.add(Sphere::new_stationary(Point3::new(-4.0, 1.0, 0.0), 1.0, material2));
+    world.add(Sphere::new_stationary(
+        Point3::new(-4.0, 1.0, 0.0),
+        1.0,
+        material2,
+    ));
 
     let material3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
-    world.add(Sphere::new_stationary(Point3::new(4.0, 1.0, 0.0), 1.0, material3));
+    world.add(Sphere::new_stationary(
+        Point3::new(4.0, 1.0, 0.0),
+        1.0,
+        material3,
+    ));
 
-    let world = BVHNode::new(&world.objects[..]);
+    let world = BVHNode::from_list(&world);
 
     // Camera
     let mut camera = Camera::new();
 
     camera.aspect_ratio = 16.0 / 9.0;
     camera.image_width = 1200;
-    camera.samples_per_pixel = 100;
+    camera.samples_per_pixel = 500;
     camera.max_depth = 50;
 
     camera.vfov = 20.0;
