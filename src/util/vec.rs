@@ -1,6 +1,6 @@
 use glam::Vec3A;
 
-pub fn vec3_a_near_zero(vec: &Vec3A) -> bool {
+pub fn vec3a_near_zero(vec: &Vec3A) -> bool {
     vec.x.abs() < 1.0e-8 && vec.y.abs() < 1.0e-8 && vec.z.abs() < 1.0e-8
 }
 

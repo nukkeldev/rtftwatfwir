@@ -1,8 +1,6 @@
 use std::sync::Arc;
 
-use crate::{
-    hittable::HitRecord, texture::Texture, util::all::*, util::vec::vec3_a_near_zero, Color,
-};
+use crate::{hittable::HitRecord, texture::Texture, util::all::*, Color};
 
 pub trait MaterialT {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)>;
@@ -59,7 +57,7 @@ impl MaterialT for Lambertian {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)> {
         let mut scatter_dir = rec.normal + random_unit_vector();
 
-        if vec3_a_near_zero(&scatter_dir) {
+        if vec3a_near_zero(&scatter_dir) {
             scatter_dir = rec.normal;
         }
 
