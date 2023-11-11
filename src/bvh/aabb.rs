@@ -1,3 +1,7 @@
+use std::ops::Add;
+
+use glam::DVec3;
+
 use crate::util::{interval::Interval, ray::Ray, Point3};
 
 #[derive(Debug, Default, Clone)]
@@ -93,5 +97,13 @@ impl AABB {
             }
         }
         Some(ray_t)
+    }
+}
+
+impl Add<DVec3> for AABB {
+    type Output = Self;
+
+    fn add(self, offset: DVec3) -> Self::Output {
+        Self::Output::new(self.x + offset.x, self.y + offset.y, self.z + offset.z)
     }
 }

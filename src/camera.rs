@@ -24,6 +24,8 @@ pub struct Camera {
     pub samples_per_pixel: i32,
     /// Maximum number of ray bounces into scene.
     pub max_depth: i32,
+    /// Background Color
+    pub background: Color,
 
     /// Vertical FOV in degrees.
     pub vfov: f64,
@@ -82,6 +84,7 @@ impl Default for Camera {
             defocus_disk_v: Default::default(),
             samples_per_pixel: 10,
             max_depth: 10,
+            background: Color::ZERO,
         }
     }
 }
@@ -156,22 +159,25 @@ impl Camera {
         (px * self.pixel_delta_u) + (py * self.pixel_delta_v)
     }
 
-    fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
+    fn ray_color(&self, r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
         if depth <= 0 {
             return Color::ZERO;
         }
 
         if let Some(rec) = world.hit(r, Interval::new(0.001, INFINITY)) {
-            return if let Some((scattered, attenunation)) = rec.material.scatter(r, &rec) {
-                attenunation * Self::ray_color(&scattered, world, depth - 1)
-            } else {
-                Color::ZERO
-            };
+            let color_from_emmision = rec.material.emitted(rec.u, rec.v, rec.p);
+
+            let color_from_scatter =
+                if let Some((scattered, attenunation)) = rec.material.scatter(r, &rec) {
+                    attenunation * self.ray_color(&scattered, world, depth - 1)
+                } else {
+                    return color_from_emmision;
+                };
+
+            return color_from_emmision + color_from_scatter;
         }
 
-        let unit_direction = r.direction.normalize();
-        let t = 0.5 * (unit_direction.y + 1.0);
-        (1.0 - t) * Color::ONE + t * Color::new(0.5, 0.7, 1.0)
+        self.background
     }
 
     pub fn render(&mut self, world: &dyn Hittable) -> Result<()> {
@@ -213,7 +219,7 @@ impl Camera {
                     let mut pixel_color = Color::ZERO;
                     for _ in 0..cam.samples_per_pixel {
                         let r = cam.get_ray(i, j);
-                        pixel_color += Camera::ray_color(&r, world, cam.max_depth);
+                        pixel_color += cam.ray_color(&r, world, cam.max_depth);
                     }
 
                     pixel_color

@@ -14,3 +14,7 @@ pub fn refract(uv: DVec3, n: DVec3, etai_over_etat: f64) -> DVec3 {
     let r_out_parallel = (1.0 - r_out_perp.length_squared()).abs().sqrt() * -n;
     r_out_perp + r_out_parallel
 }
+
+pub const AXIS_X: usize = 0;
+pub const AXIS_Y: usize = 1;
+pub const AXIS_Z: usize = 2;

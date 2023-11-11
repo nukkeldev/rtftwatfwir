@@ -6,6 +6,9 @@ use crate::{
 
 pub trait MaterialT {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)>;
+    fn emitted(&self, _u: f64, _v: f64, _p: Point3) -> Color {
+        Color::ZERO
+    }
 }
 
 #[derive(Clone)]
@@ -13,6 +16,7 @@ pub enum Material {
     Lambertian(Lambertian),
     Metal(Metal),
     Dielectric(Dielectric),
+    DiffuseLight(DiffuseLight),
 }
 
 impl MaterialT for Material {
@@ -21,6 +25,16 @@ impl MaterialT for Material {
             Material::Lambertian(l) => l.scatter(r_in, rec),
             Material::Metal(m) => m.scatter(r_in, rec),
             Material::Dielectric(d) => d.scatter(r_in, rec),
+            Material::DiffuseLight(dl) => dl.scatter(r_in, rec),
+        }
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+        match self {
+            Material::Lambertian(l) => l.emitted(u, v, p),
+            Material::Metal(m) => m.emitted(u, v, p),
+            Material::Dielectric(d) => d.emitted(u, v, p),
+            Material::DiffuseLight(dl) => dl.emitted(u, v, p),
         }
     }
 }
@@ -126,5 +140,28 @@ impl MaterialT for Dielectric {
         };
 
         Some((Ray::new_with_time(rec.p, direction, r_in.time), Color::ONE))
+    }
+}
+
+#[derive(Clone)]
+pub struct DiffuseLight {
+    emit: Arc<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(texture: impl Texture + 'static) -> Material {
+        Material::DiffuseLight(Self {
+            emit: Arc::new(texture),
+        })
+    }
+}
+
+impl MaterialT for DiffuseLight {
+    fn scatter(&self, _r_in: &Ray, _rec: &HitRecord) -> Option<(Ray, Color)> {
+        None
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+        self.emit.sample(u, v, p)
     }
 }

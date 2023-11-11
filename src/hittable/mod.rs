@@ -6,7 +6,10 @@ use crate::{
     util::{interval::Interval, ray::Ray, Point3},
 };
 
+use self::{hittable_list::HittableList, quad::Quad};
+
 pub mod hittable_list;
+pub mod instance;
 pub mod quad;
 pub mod sphere;
 
@@ -56,4 +59,55 @@ impl<'mat> HitRecord<'mat> {
 pub trait Hittable: Sync + Send {
     fn hit<'mat>(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord>;
     fn bounding_box(&self) -> &AABB;
+}
+
+/// Returns a 3D box that contains the two opposite verticies, a and b.
+pub fn new_box(a: Point3, b: Point3, mat: Material) -> HittableList {
+    let mut sides = HittableList::new();
+
+    let min = Point3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z));
+    let max = Point3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z));
+
+    let dx = DVec3::X * (max.x - min.x);
+    let dy = DVec3::Y * (max.y - min.y);
+    let dz = DVec3::Z * (max.z - min.z);
+
+    sides.add(Quad::new(
+        Point3::new(min.x, min.y, max.z),
+        dx,
+        dy,
+        mat.clone(),
+    )); // Front
+    sides.add(Quad::new(
+        Point3::new(max.x, min.y, max.z),
+        -dz,
+        dy,
+        mat.clone(),
+    )); // Right
+    sides.add(Quad::new(
+        Point3::new(max.x, min.y, min.z),
+        -dx,
+        dy,
+        mat.clone(),
+    )); // Back
+    sides.add(Quad::new(
+        Point3::new(min.x, min.y, min.z),
+        dz,
+        dy,
+        mat.clone(),
+    )); // Left
+    sides.add(Quad::new(
+        Point3::new(min.x, max.y, max.z),
+        dx,
+        -dz,
+        mat.clone(),
+    )); // Top
+    sides.add(Quad::new(
+        Point3::new(min.x, min.y, min.z),
+        dx,
+        dz,
+        mat.clone(),
+    )); // Bottom
+
+    sides
 }
