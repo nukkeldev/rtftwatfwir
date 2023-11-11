@@ -1,6 +1,6 @@
-use std::{f64::INFINITY, sync::Arc};
+use std::{f32::INFINITY, sync::Arc};
 
-use glam::DVec3;
+use glam::Vec3A;
 
 use crate::{
     bvh::aabb::AABB,
@@ -13,12 +13,12 @@ use crate::util::all::*;
 
 pub struct ConstantMedium {
     boundary: Arc<dyn Hittable>,
-    neg_inv_density: f64,
+    neg_inv_density: f32,
     phase_function: Material,
 }
 
 impl ConstantMedium {
-    pub fn new(b: impl Hittable + 'static, d: f64, a: impl Texture + 'static) -> Self {
+    pub fn new(b: impl Hittable + 'static, d: f32, a: impl Texture + 'static) -> Self {
         Self {
             boundary: Arc::new(b),
             neg_inv_density: -1.0 / d,
@@ -31,7 +31,7 @@ impl Hittable for ConstantMedium {
     fn hit<'mat>(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
         // Occasional debugging.
         const ENABLE_DEBUGGING: bool = false;
-        let debugging: bool = ENABLE_DEBUGGING && random_f64(0.0, 1.0) < 0.00001;
+        let debugging: bool = ENABLE_DEBUGGING && random_f32(0.0, 1.0) < 0.00001;
 
         if let Some(mut hit1) = self.boundary.hit(r, Interval::UNIVERSE) {
             if let Some(mut hit2) = self
@@ -53,7 +53,7 @@ impl Hittable for ConstantMedium {
 
                 let ray_length = r.direction.length();
                 let distance_inside_boundary = (hit2.t - hit1.t) * ray_length;
-                let hit_distance = self.neg_inv_density * random_f64(0.0, 1.0).log10();
+                let hit_distance = self.neg_inv_density * random_f32(0.0, 1.0).log10();
 
                 if hit_distance > distance_inside_boundary {
                     return None;
@@ -73,7 +73,7 @@ impl Hittable for ConstantMedium {
                     0.0,
                     0.0,
                     &self.phase_function,
-                    DVec3::X, // Arbitrary
+                    Vec3A::X, // Arbitrary
                 );
 
                 rec.front_face = true; // Arbitrary

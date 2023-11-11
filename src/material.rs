@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use crate::{
-    hittable::HitRecord, texture::Texture, util::all::*, util::vec::dvec3_near_zero, Color,
+    hittable::HitRecord, texture::Texture, util::all::*, util::vec::vec3_a_near_zero, Color,
 };
 
 pub trait MaterialT {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)>;
-    fn emitted(&self, _u: f64, _v: f64, _p: Point3) -> Color {
+    fn emitted(&self, _u: f32, _v: f32, _p: Point3) -> Color {
         Color::ZERO
     }
 }
@@ -31,7 +31,7 @@ impl MaterialT for Material {
         }
     }
 
-    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+    fn emitted(&self, u: f32, v: f32, p: Point3) -> Color {
         match self {
             Material::Lambertian(l) => l.emitted(u, v, p),
             Material::Metal(m) => m.emitted(u, v, p),
@@ -59,7 +59,7 @@ impl MaterialT for Lambertian {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)> {
         let mut scatter_dir = rec.normal + random_unit_vector();
 
-        if dvec3_near_zero(&scatter_dir) {
+        if vec3_a_near_zero(&scatter_dir) {
             scatter_dir = rec.normal;
         }
 
@@ -73,11 +73,11 @@ impl MaterialT for Lambertian {
 #[derive(Clone)]
 pub struct Metal {
     pub albedo: Color,
-    pub fuzz: f64,
+    pub fuzz: f32,
 }
 
 impl Metal {
-    pub fn new(albedo: Color, fuzz: f64) -> Material {
+    pub fn new(albedo: Color, fuzz: f32) -> Material {
         Material::Metal(Self {
             albedo,
             fuzz: fuzz.min(1.0),
@@ -107,15 +107,15 @@ impl MaterialT for Metal {
 
 #[derive(Clone)]
 pub struct Dielectric {
-    pub ir: f64,
+    pub ir: f32,
 }
 
 impl Dielectric {
-    pub fn new(ir: f64) -> Material {
+    pub fn new(ir: f32) -> Material {
         Material::Dielectric(Self { ir })
     }
 
-    pub fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
+    pub fn reflectance(cosine: f32, ref_idx: f32) -> f32 {
         // Use Schlick's approximation for reflectance.
         let r0 = ((1.0 - ref_idx) / (1.0 + ref_idx)).powi(2);
         r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
@@ -164,7 +164,7 @@ impl MaterialT for DiffuseLight {
         None
     }
 
-    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+    fn emitted(&self, u: f32, v: f32, p: Point3) -> Color {
         self.emit.sample(u, v, p)
     }
 }

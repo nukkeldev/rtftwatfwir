@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-use glam::DVec3;
+use glam::Vec3A;
 
 use crate::util::{interval::Interval, ray::Ray, Point3};
 
@@ -45,7 +45,7 @@ impl AABB {
     }
 
     pub fn pad(&self) -> Self {
-        const DELTA: f64 = 0.0001;
+        const DELTA: f32 = 0.0001;
         let x = if self.x.size() >= DELTA {
             self.x
         } else {
@@ -100,10 +100,10 @@ impl AABB {
     }
 }
 
-impl Add<DVec3> for AABB {
+impl Add<Vec3A> for AABB {
     type Output = Self;
 
-    fn add(self, offset: DVec3) -> Self::Output {
+    fn add(self, offset: Vec3A) -> Self::Output {
         Self::Output::new(self.x + offset.x, self.y + offset.y, self.z + offset.z)
     }
 }

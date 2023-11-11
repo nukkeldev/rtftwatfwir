@@ -6,8 +6,8 @@ pub mod random;
 pub mod ray;
 pub mod vec;
 
-pub type Point3 = glam::DVec3;
+pub type Point3 = glam::Vec3A;
 
-pub fn hermitian_smoothing(d: f64) -> f64 {
+pub fn hermitian_smoothing(d: f32) -> f32 {
     d * d * (3.0 - 2.0 * d)
 }

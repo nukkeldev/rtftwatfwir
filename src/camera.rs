@@ -1,11 +1,11 @@
-use std::f64::INFINITY;
+use std::f32::INFINITY;
 use std::fs::OpenOptions;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Instant;
 
 use anyhow::Result;
-use glam::DVec3;
+use glam::Vec3A;
 use memmap2::MmapMut;
 use rayon::prelude::{IndexedParallelIterator, ParallelIterator};
 use rayon::slice::ParallelSliceMut;
@@ -17,7 +17,7 @@ use crate::util::all::*;
 #[derive(Debug)]
 pub struct Camera {
     /// Ratio of the image width over height.
-    pub aspect_ratio: f64,
+    pub aspect_ratio: f32,
     /// Width of the rendered image in pixels.
     pub image_width: i32,
     /// Height of the rendered image in pixels, calculated from the width and aspect ratio.
@@ -30,37 +30,37 @@ pub struct Camera {
     pub background: Color,
 
     /// Vertical FOV in degrees.
-    pub vfov: f64,
+    pub vfov: f32,
     /// Point the camera is looking from.
     pub lookfrom: Point3,
     /// Point the camera is looking at.
     pub lookat: Point3,
     /// Camera-relative "up" direction.
-    pub vup: DVec3,
+    pub vup: Vec3A,
 
     /// Variation angle of rays through each pixel.
-    pub defocus_angle: f64,
+    pub defocus_angle: f32,
     /// Distance from camera lookfrom point to plane of perfect focus.
-    pub focus_dist: f64,
+    pub focus_dist: f32,
 
     /// Defocus disk horizontal radius.
-    defocus_disk_u: DVec3,
+    defocus_disk_u: Vec3A,
     /// Defocus disk vertical radius.
-    defocus_disk_v: DVec3,
+    defocus_disk_v: Vec3A,
 
     /// Camera frame basis vectors.
-    u: DVec3,
-    v: DVec3,
-    w: DVec3,
+    u: Vec3A,
+    v: Vec3A,
+    w: Vec3A,
 
     /// Kind of a redunaant property, basically the same as lookfrom.
     origin: Point3,
     /// Location of the top-left pixel relative to the camera.
     pixel00_loc: Point3,
     /// Delta between horizontal pixels.
-    pixel_delta_u: DVec3,
+    pixel_delta_u: Vec3A,
     /// Delta between vertical pixels.
-    pixel_delta_v: DVec3,
+    pixel_delta_v: Vec3A,
 }
 
 impl Default for Camera {
@@ -72,7 +72,7 @@ impl Default for Camera {
             vfov: 90.0,
             lookfrom: Point3::NEG_Z,
             lookat: Point3::ZERO,
-            vup: DVec3::Y,
+            vup: Vec3A::Y,
             u: Default::default(),
             v: Default::default(),
             w: Default::default(),
@@ -97,7 +97,7 @@ impl Camera {
     }
 
     fn initialize(&mut self) {
-        self.image_height = (self.image_width as f64 / self.aspect_ratio).max(1.0) as i32;
+        self.image_height = (self.image_width as f32 / self.aspect_ratio).max(1.0) as i32;
 
         self.origin = self.lookfrom;
 
@@ -105,7 +105,7 @@ impl Camera {
         let theta = self.vfov.to_radians();
         let h = (theta / 2.0).tan();
         let viewport_height = 2.0 * h * self.focus_dist;
-        let viewport_width = (self.image_width as f64 / self.image_height as f64) * viewport_height;
+        let viewport_width = (self.image_width as f32 / self.image_height as f32) * viewport_height;
 
         // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
         self.w = (self.lookfrom - self.lookat).normalize();
@@ -117,8 +117,8 @@ impl Camera {
         let viewport_v = viewport_height * -self.v; // Down Vertical
 
         // Calculate the horizontal and vertical delta vectors from pixel to pixel.
-        self.pixel_delta_u = viewport_u / self.image_width as f64;
-        self.pixel_delta_v = viewport_v / self.image_height as f64;
+        self.pixel_delta_u = viewport_u / self.image_width as f32;
+        self.pixel_delta_v = viewport_v / self.image_height as f32;
 
         // Calculate the location of the upper left pixel.
         let viewport_upper_left =
@@ -135,7 +135,7 @@ impl Camera {
     /// from the camera defocus disk.
     fn get_ray(&self, i: i32, j: i32) -> Ray {
         let pixel_center =
-            self.pixel00_loc + (i as f64 * self.pixel_delta_u) + (j as f64 * self.pixel_delta_v);
+            self.pixel00_loc + (i as f32 * self.pixel_delta_u) + (j as f32 * self.pixel_delta_v);
         let pixel_sample = pixel_center + self.pixel_sample_square();
 
         let ray_origin = if self.defocus_angle <= 0.0 {
@@ -143,7 +143,7 @@ impl Camera {
         } else {
             self.defocus_disk_sample()
         };
-        let ray_time = rand::random::<f64>();
+        let ray_time = rand::random::<f32>();
 
         Ray::new_with_time(ray_origin, pixel_sample - ray_origin, ray_time)
     }
@@ -155,9 +155,9 @@ impl Camera {
     }
 
     /// Returns a random point in the square surrounding a pixel at the origin.
-    fn pixel_sample_square(&self) -> DVec3 {
-        let px = -0.5 + rand::random::<f64>();
-        let py = -0.5 + rand::random::<f64>();
+    fn pixel_sample_square(&self) -> Vec3A {
+        let px = -0.5 + rand::random::<f32>();
+        let py = -0.5 + rand::random::<f32>();
         (px * self.pixel_delta_u) + (py * self.pixel_delta_v)
     }
 
@@ -211,7 +211,7 @@ impl Camera {
                 if let Ok(_) = recv.recv() {
                     pixels_done += 1;
                     if pixels_done % pixels_per_percent == 0 {
-                        println!("{}%", pixels_done as f64 / total_pixels as f64 * 100.0);
+                        println!("{}%", pixels_done as f32 / total_pixels as f32 * 100.0);
                     }
                 } else {
                     println!("Rendered in {} seconds!", now.elapsed().as_secs_f32());

@@ -1,4 +1,4 @@
-use glam::DVec3;
+use glam::Vec3A;
 
 use crate::{bvh::aabb::AABB, material::Material, util::Point3};
 
@@ -7,18 +7,18 @@ use crate::util::all::*;
 
 pub struct Quad {
     q: Point3,
-    u: DVec3,
-    v: DVec3,
+    u: Vec3A,
+    v: Vec3A,
     mat: Material,
     bbox: AABB,
 
-    normal: DVec3,
-    d: f64,
-    w: DVec3,
+    normal: Vec3A,
+    d: f32,
+    w: Vec3A,
 }
 
 impl Quad {
-    pub fn new(q: Point3, u: DVec3, v: DVec3, mat: Material) -> Self {
+    pub fn new(q: Point3, u: Vec3A, v: Vec3A, mat: Material) -> Self {
         let n = u.cross(v);
         let normal = n.normalize();
 
@@ -40,7 +40,7 @@ impl Quad {
         self.bbox = AABB::from_points(self.q, self.q + self.u + self.v).pad();
     }
 
-    fn is_interior(&self, a: f64, b: f64) -> bool {
+    fn is_interior(&self, a: f32, b: f32) -> bool {
         (a >= 0.0) && (a <= 1.0) && (b >= 0.0) && (b <= 1.0)
     }
 }

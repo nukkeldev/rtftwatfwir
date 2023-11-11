@@ -1,5 +1,5 @@
 use anyhow::Result;
-use glam::DVec3;
+use glam::Vec3A;
 
 use crate::{
     bvh::node::BVHNode,
@@ -16,7 +16,7 @@ use crate::{
     texture::{CheckerTexture, NoiseTexture},
     util::{
         color::Color,
-        random::{random_f64, random_vec_in_range},
+        random::{random_f32, random_vec_in_range},
         vec::AXIS_Y,
         Point3,
     },
@@ -35,11 +35,11 @@ pub fn random_spheres() -> Result<()> {
 
     for a in -11..11 {
         for b in -11..11 {
-            let choose_mat = rand::random::<f64>();
+            let choose_mat = rand::random::<f32>();
             let center = Point3::new(
-                a as f64 + 0.9 * rand::random::<f64>(),
+                a as f32 + 0.9 * rand::random::<f32>(),
                 0.2,
-                b as f64 + 0.9 * rand::random::<f64>(),
+                b as f32 + 0.9 * rand::random::<f32>(),
             );
 
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
@@ -50,7 +50,7 @@ pub fn random_spheres() -> Result<()> {
                 } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = random_vec_in_range(0.5, 1.0);
-                    let fuzz = random_f64(0.0, 0.5);
+                    let fuzz = random_f32(0.0, 0.5);
                     Metal::new(albedo, fuzz)
                 } else {
                     // Glass
@@ -60,7 +60,7 @@ pub fn random_spheres() -> Result<()> {
                 if choose_mat < 0.8 {
                     world.add(Sphere::new_moving(
                         center,
-                        center + DVec3::new(0.0, rand::random::<f64>() / 2.0, 0.0),
+                        center + Vec3A::new(0.0, rand::random::<f32>() / 2.0, 0.0),
                         0.2,
                         material,
                     ));
@@ -145,7 +145,7 @@ pub fn two_spheres() -> Result<()> {
     camera.vfov = 20.0;
     camera.lookfrom = Point3::new(13.0, 2.0, 3.0);
     camera.lookat = Point3::ZERO;
-    camera.vup = DVec3::Y;
+    camera.vup = Vec3A::Y;
 
     camera.defocus_angle = 0.0;
 
@@ -167,7 +167,7 @@ pub fn earth() -> Result<()> {
     camera.vfov = 20.0;
     camera.lookfrom = Point3::new(0.0, 0.0, 12.0);
     camera.lookat = Point3::ZERO;
-    camera.vup = DVec3::Y;
+    camera.vup = Vec3A::Y;
 
     camera.defocus_angle = 0.0;
 
@@ -200,7 +200,7 @@ pub fn two_perlin_spheres() -> Result<()> {
     camera.vfov = 20.0;
     camera.lookfrom = Point3::new(13.0, 2.0, 3.0);
     camera.lookat = Point3::ZERO;
-    camera.vup = DVec3::Y;
+    camera.vup = Vec3A::Y;
 
     camera.defocus_angle = 0.0;
 
@@ -218,32 +218,32 @@ pub fn quads() -> Result<()> {
 
     world.add(Quad::new(
         Point3::new(-3.0, -2.0, 5.0),
-        DVec3::Z * -4.0,
-        DVec3::Y * 4.0,
+        Vec3A::Z * -4.0,
+        Vec3A::Y * 4.0,
         left_red,
     ));
     world.add(Quad::new(
         Point3::new(-2.0, -2.0, 0.0),
-        DVec3::X * 4.0,
-        DVec3::Y * 4.0,
+        Vec3A::X * 4.0,
+        Vec3A::Y * 4.0,
         back_green,
     ));
     world.add(Quad::new(
         Point3::new(3.0, -2.0, 1.0),
-        DVec3::Z * 4.0,
-        DVec3::Y * 4.0,
+        Vec3A::Z * 4.0,
+        Vec3A::Y * 4.0,
         right_blue,
     ));
     world.add(Quad::new(
         Point3::new(-2.0, 3.0, 1.0),
-        DVec3::X * 4.0,
-        DVec3::Z * 4.0,
+        Vec3A::X * 4.0,
+        Vec3A::Z * 4.0,
         upper_orange,
     ));
     world.add(Quad::new(
         Point3::new(-2.0, -3.0, 5.0),
-        DVec3::X * 4.0,
-        DVec3::Z * -4.0,
+        Vec3A::X * 4.0,
+        Vec3A::Z * -4.0,
         lower_teal,
     ));
 
@@ -258,7 +258,7 @@ pub fn quads() -> Result<()> {
     camera.vfov = 80.0;
     camera.lookfrom = Point3::new(0.0, 0.0, 9.0);
     camera.lookat = Point3::ZERO;
-    camera.vup = DVec3::Y;
+    camera.vup = Vec3A::Y;
 
     camera.defocus_angle = 0.0;
 
@@ -288,8 +288,8 @@ pub fn simple_light() -> Result<()> {
     ));
     world.add(Quad::new(
         Point3::new(3.0, 1.0, -2.0),
-        DVec3::X * 2.0,
-        DVec3::Y * 2.0,
+        Vec3A::X * 2.0,
+        Vec3A::Y * 2.0,
         diff_light,
     ));
 
@@ -304,7 +304,7 @@ pub fn simple_light() -> Result<()> {
     camera.vfov = 20.0;
     camera.lookfrom = Point3::new(26.0, 3.0, 6.0);
     camera.lookat = Point3::Y * 2.0;
-    camera.vup = DVec3::Y;
+    camera.vup = Vec3A::Y;
 
     camera.defocus_angle = 0.0;
 
@@ -321,38 +321,38 @@ pub fn cornell_box() -> Result<()> {
 
     world.add(Quad::new(
         Point3::new(555.0, 0.0, 0.0),
-        DVec3::Y * 555.0,
-        DVec3::Z * 555.0,
+        Vec3A::Y * 555.0,
+        Vec3A::Z * 555.0,
         green,
     ));
     world.add(Quad::new(
         Point3::new(0.0, 0.0, 0.0),
-        DVec3::Y * 555.0,
-        DVec3::Z * 555.0,
+        Vec3A::Y * 555.0,
+        Vec3A::Z * 555.0,
         red,
     ));
     world.add(Quad::new(
         Point3::new(343.0, 554.0, 332.0),
-        DVec3::X * -130.0,
-        DVec3::Z * -105.0,
+        Vec3A::X * -130.0,
+        Vec3A::Z * -105.0,
         light,
     ));
     world.add(Quad::new(
         Point3::new(0.0, 0.0, 0.0),
-        DVec3::X * 555.0,
-        DVec3::Z * 555.0,
+        Vec3A::X * 555.0,
+        Vec3A::Z * 555.0,
         white.clone(),
     ));
     world.add(Quad::new(
         Point3::new(555.0, 555.0, 555.0),
-        DVec3::X * -555.0,
-        DVec3::Z * -555.0,
+        Vec3A::X * -555.0,
+        Vec3A::Z * -555.0,
         white.clone(),
     ));
     world.add(Quad::new(
         Point3::new(0.0, 0.0, 555.0),
-        DVec3::X * 555.0,
-        DVec3::Y * 555.0,
+        Vec3A::X * 555.0,
+        Vec3A::Y * 555.0,
         white.clone(),
     ));
 
@@ -362,7 +362,7 @@ pub fn cornell_box() -> Result<()> {
         white.clone(),
     );
     let box_1 = Rotation::<AXIS_Y>::new(box_1, 15.0);
-    let box_1 = Translate::new(box_1, DVec3::new(265.0, 0.0, 295.0));
+    let box_1 = Translate::new(box_1, Vec3A::new(265.0, 0.0, 295.0));
     world.add(box_1);
 
     let box_2 = new_box(
@@ -371,7 +371,7 @@ pub fn cornell_box() -> Result<()> {
         white.clone(),
     );
     let box_2 = Rotation::<AXIS_Y>::new(box_2, -18.0);
-    let box_2 = Translate::new(box_2, DVec3::new(130.0, 0.0, 65.0));
+    let box_2 = Translate::new(box_2, Vec3A::new(130.0, 0.0, 65.0));
     world.add(box_2);
 
     let mut camera = Camera::new();
@@ -385,7 +385,7 @@ pub fn cornell_box() -> Result<()> {
     camera.vfov = 40.0;
     camera.lookfrom = Point3::new(278.0, 278.0, -800.0);
     camera.lookat = Point3::new(278.0, 278.0, 0.0);
-    camera.vup = DVec3::Y;
+    camera.vup = Vec3A::Y;
 
     camera.defocus_angle = 0.0;
 
@@ -402,38 +402,38 @@ pub fn cornell_smoke() -> Result<()> {
 
     world.add(Quad::new(
         Point3::X * 555.0,
-        DVec3::Y * 555.0,
-        DVec3::Z * 555.0,
+        Vec3A::Y * 555.0,
+        Vec3A::Z * 555.0,
         green,
     ));
     world.add(Quad::new(
         Point3::ZERO,
-        DVec3::Y * 555.0,
-        DVec3::Z * 555.0,
+        Vec3A::Y * 555.0,
+        Vec3A::Z * 555.0,
         red,
     ));
     world.add(Quad::new(
         Point3::new(113.0, 554.0, 127.0),
-        DVec3::X * 330.0,
-        DVec3::Z * 305.0,
+        Vec3A::X * 330.0,
+        Vec3A::Z * 305.0,
         light,
     ));
     world.add(Quad::new(
         Point3::Y * 555.0,
-        DVec3::X * 555.0,
-        DVec3::Z * 555.0,
+        Vec3A::X * 555.0,
+        Vec3A::Z * 555.0,
         white.clone(),
     ));
     world.add(Quad::new(
         Point3::ZERO,
-        DVec3::X * 555.0,
-        DVec3::Z * 555.0,
+        Vec3A::X * 555.0,
+        Vec3A::Z * 555.0,
         white.clone(),
     ));
     world.add(Quad::new(
         Point3::Z * 555.0,
-        DVec3::X * 555.0,
-        DVec3::Y * 555.0,
+        Vec3A::X * 555.0,
+        Vec3A::Y * 555.0,
         white.clone(),
     ));
 
@@ -443,7 +443,7 @@ pub fn cornell_smoke() -> Result<()> {
         white.clone(),
     );
     let box_1 = Rotation::<AXIS_Y>::new(box_1, 15.0);
-    let box_1 = Translate::new(box_1, DVec3::new(265.0, 0.0, 295.0));
+    let box_1 = Translate::new(box_1, Vec3A::new(265.0, 0.0, 295.0));
 
     let box_2 = new_box(
         Point3::ZERO,
@@ -451,7 +451,7 @@ pub fn cornell_smoke() -> Result<()> {
         white.clone(),
     );
     let box_2 = Rotation::<AXIS_Y>::new(box_2, -18.0);
-    let box_2 = Translate::new(box_2, DVec3::new(130.0, 0.0, 65.0));
+    let box_2 = Translate::new(box_2, Vec3A::new(130.0, 0.0, 65.0));
 
     world.add(ConstantMedium::new(box_1, 0.01, Color::ZERO));
     world.add(ConstantMedium::new(box_2, 0.01, Color::ONE));
@@ -467,7 +467,7 @@ pub fn cornell_smoke() -> Result<()> {
     camera.vfov = 40.0;
     camera.lookfrom = Point3::new(278.0, 278.0, -800.0);
     camera.lookat = Point3::new(278.0, 278.0, 0.0);
-    camera.vup = DVec3::Y;
+    camera.vup = Vec3A::Y;
 
     camera.defocus_angle = 0.0;
 
@@ -486,11 +486,11 @@ pub fn next_weeks_final_scene(
     for i in 0..boxes_per_side {
         for j in 0..boxes_per_side {
             let w = 100.0;
-            let x0 = -1000.0 + i as f64 * w;
-            let z0 = -1000.0 + j as f64 * w;
+            let x0 = -1000.0 + i as f32 * w;
+            let z0 = -1000.0 + j as f32 * w;
             let y0 = 0.0;
             let x1 = x0 + w;
-            let y1 = random_f64(1.0, 101.0);
+            let y1 = random_f32(1.0, 101.0);
             let z1 = z0 + w;
 
             boxes_1.add(new_box(
@@ -507,13 +507,13 @@ pub fn next_weeks_final_scene(
     let light = DiffuseLight::new(Color::new(7.0, 7.0, 7.0));
     world.add(Quad::new(
         Point3::new(123.0, 554.0, 147.0),
-        DVec3::X * 300.0,
-        DVec3::Z * 265.0,
+        Vec3A::X * 300.0,
+        Vec3A::Z * 265.0,
         light,
     ));
 
     let center1 = Point3::new(400.0, 400.0, 200.0);
-    let center2 = center1 + DVec3::X * 30.0;
+    let center2 = center1 + Vec3A::X * 30.0;
     let sphere_material = Lambertian::new(Color::new(0.7, 0.3, 0.1));
     world.add(Sphere::new_moving(center1, center2, 50.0, sphere_material));
 
@@ -565,7 +565,7 @@ pub fn next_weeks_final_scene(
 
     world.add(Translate::new(
         Rotation::<AXIS_Y>::new(BVHNode::from_list(&boxes_2), 15.0),
-        DVec3::new(-100.0, 270.0, 395.0),
+        Vec3A::new(-100.0, 270.0, 395.0),
     ));
 
     let mut camera = Camera::new();
@@ -579,7 +579,7 @@ pub fn next_weeks_final_scene(
     camera.vfov = 40.0;
     camera.lookfrom = Point3::new(478.0, 278.0, -600.0);
     camera.lookat = Point3::new(278.0, 278.0, 0.0);
-    camera.vup = DVec3::Y;
+    camera.vup = Vec3A::Y;
 
     camera.defocus_angle = 0.0;
 

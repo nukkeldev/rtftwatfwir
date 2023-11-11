@@ -1,15 +1,15 @@
-use std::{f64::INFINITY, ops::Add};
+use std::{f32::INFINITY, ops::Add};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Interval {
-    pub min: f64,
-    pub max: f64,
+    pub min: f32,
+    pub max: f32,
 }
 
 impl Interval {
     pub const UNIVERSE: Self = Interval::new(-INFINITY, INFINITY);
 
-    pub const fn new(min: f64, max: f64) -> Self {
+    pub const fn new(min: f32, max: f32) -> Self {
         Self { min, max }
     }
 
@@ -20,15 +20,15 @@ impl Interval {
         }
     }
 
-    pub fn contains(&self, n: f64) -> bool {
+    pub fn contains(&self, n: f32) -> bool {
         self.min <= n && self.max >= n
     }
 
-    pub fn size(&self) -> f64 {
+    pub fn size(&self) -> f32 {
         self.max - self.min
     }
 
-    pub fn expand(&self, delta: f64) -> Self {
+    pub fn expand(&self, delta: f32) -> Self {
         let padding = delta / 2.0;
         Self::new(self.min - padding, self.max + padding)
     }
@@ -37,16 +37,16 @@ impl Interval {
 impl Default for Interval {
     fn default() -> Self {
         Self {
-            min: f64::INFINITY,
-            max: f64::NEG_INFINITY,
+            min: f32::INFINITY,
+            max: f32::NEG_INFINITY,
         }
     }
 }
 
-impl Add<f64> for Interval {
+impl Add<f32> for Interval {
     type Output = Self;
 
-    fn add(self, rhs: f64) -> Self::Output {
+    fn add(self, rhs: f32) -> Self::Output {
         Interval::new(self.min + rhs, self.max + rhs)
     }
 }

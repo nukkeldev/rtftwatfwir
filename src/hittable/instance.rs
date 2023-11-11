@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use glam::DVec3;
+use glam::Vec3A;
 
 use crate::bvh::aabb::AABB;
 
@@ -9,12 +9,12 @@ use crate::util::all::*;
 
 pub struct Translate {
     object: Arc<dyn Hittable>,
-    offset: DVec3,
+    offset: Vec3A,
     bbox: AABB,
 }
 
 impl Translate {
-    pub fn new(object: impl Hittable + 'static, offset: DVec3) -> Self {
+    pub fn new(object: impl Hittable + 'static, offset: Vec3A) -> Self {
         Self {
             bbox: object.bounding_box().clone() + offset,
             object: Arc::new(object),
@@ -41,12 +41,12 @@ impl Hittable for Translate {
 pub struct Rotation<const T: usize> {
     object: Arc<dyn Hittable>,
     bbox: AABB,
-    sin_theta: f64,
-    cos_theta: f64,
+    sin_theta: f32,
+    cos_theta: f32,
 }
 
 impl Rotation<AXIS_Y> {
-    pub fn new(object: impl Hittable + 'static, angle_degrees: f64) -> Self {
+    pub fn new(object: impl Hittable + 'static, angle_degrees: f32) -> Self {
         let radians = angle_degrees.to_radians();
         let (sin_theta, cos_theta) = radians.sin_cos();
         let bbox = object.bounding_box();
@@ -57,14 +57,14 @@ impl Rotation<AXIS_Y> {
         for i in 0..2 {
             for j in 0..2 {
                 for k in 0..2 {
-                    let x = i as f64 * bbox.x.max + (1.0 - i as f64) * bbox.x.min;
-                    let y = j as f64 * bbox.y.max + (1.0 - j as f64) * bbox.y.min;
-                    let z = k as f64 * bbox.z.max + (1.0 - k as f64) * bbox.z.min;
+                    let x = i as f32 * bbox.x.max + (1.0 - i as f32) * bbox.x.min;
+                    let y = j as f32 * bbox.y.max + (1.0 - j as f32) * bbox.y.min;
+                    let z = k as f32 * bbox.z.max + (1.0 - k as f32) * bbox.z.min;
 
                     let new_x = cos_theta * x + sin_theta * z;
                     let new_z = -sin_theta * x + cos_theta * z;
 
-                    let tester = DVec3::new(new_x, y, new_z);
+                    let tester = Vec3A::new(new_x, y, new_z);
 
                     for a in 0..3 {
                         min[a] = min[a].min(tester[a]);

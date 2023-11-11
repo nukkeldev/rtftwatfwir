@@ -1,4 +1,4 @@
-use glam::DVec3;
+use glam::Vec3A;
 
 use crate::{
     bvh::aabb::AABB,
@@ -18,14 +18,14 @@ pub struct HitRecord<'mat> {
     /// Absolute point of the hit
     pub p: Point3,
     /// Direction of the normal
-    pub normal: DVec3,
+    pub normal: Vec3A,
     /// What material was hit?
     pub material: &'mat Material,
     /// Length into ray; P(t) = A + tB
-    pub t: f64,
+    pub t: f32,
     /// UV Coordinates of the texture
-    pub u: f64,
-    pub v: f64,
+    pub u: f32,
+    pub v: f32,
     /// Whether or not the normal is an outward facing face.
     pub front_face: bool,
 }
@@ -33,12 +33,12 @@ pub struct HitRecord<'mat> {
 impl<'mat> HitRecord<'mat> {
     pub fn new(
         r: &Ray,
-        t: f64,
+        t: f32,
         p: Point3,
-        u: f64,
-        v: f64,
+        u: f32,
+        v: f32,
         material: &'mat Material,
-        outward_normal: DVec3,
+        outward_normal: Vec3A,
     ) -> Self {
         let front_face = r.direction.dot(outward_normal) < 0.0;
         Self {
@@ -69,9 +69,9 @@ pub fn new_box(a: Point3, b: Point3, mat: Material) -> HittableList {
     let min = Point3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z));
     let max = Point3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z));
 
-    let dx = DVec3::X * (max.x - min.x);
-    let dy = DVec3::Y * (max.y - min.y);
-    let dz = DVec3::Z * (max.z - min.z);
+    let dx = Vec3A::X * (max.x - min.x);
+    let dy = Vec3A::Y * (max.y - min.y);
+    let dz = Vec3A::Z * (max.z - min.z);
 
     sides.add(Quad::new(
         Point3::new(min.x, min.y, max.z),

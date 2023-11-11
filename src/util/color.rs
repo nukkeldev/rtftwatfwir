@@ -1,11 +1,11 @@
-pub type Color = glam::DVec3;
+pub type Color = glam::Vec3A;
 
-fn linear_to_gamma(linear_component: f64) -> f64 {
+fn linear_to_gamma(linear_component: f32) -> f32 {
     linear_component.sqrt()
 }
 
 pub fn convert_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
-    let scale = 1.0 / samples_per_pixel as f64;
+    let scale = 1.0 / samples_per_pixel as f32;
 
     let r = (256.0 * linear_to_gamma(pixel_color.x * scale).clamp(0.0, 0.999)) as u8;
     let g = (256.0 * linear_to_gamma(pixel_color.y * scale).clamp(0.0, 0.999)) as u8;

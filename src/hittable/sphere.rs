@@ -1,6 +1,6 @@
-use std::f64::consts::PI;
+use std::f32::consts::PI;
 
-use glam::DVec3;
+use glam::Vec3A;
 
 use crate::{
     bvh::aabb::AABB,
@@ -13,30 +13,30 @@ use super::{HitRecord, Hittable};
 #[derive(Clone)]
 pub struct Sphere {
     origin: Point3,
-    radius: f64,
+    radius: f32,
     material: Material,
 
     is_moving: bool,
-    movement_vec: DVec3,
+    movement_vec: Vec3A,
 
     bbox: AABB,
 }
 
 impl Sphere {
-    pub fn new_stationary(origin: Point3, radius: f64, material: Material) -> Self {
-        let rvec = DVec3::new(radius, radius, radius);
+    pub fn new_stationary(origin: Point3, radius: f32, material: Material) -> Self {
+        let rvec = Vec3A::new(radius, radius, radius);
         Self {
             origin,
             radius,
             material,
             is_moving: false,
-            movement_vec: DVec3::ZERO,
+            movement_vec: Vec3A::ZERO,
             bbox: AABB::from_points(origin - rvec, origin + rvec),
         }
     }
 
-    pub fn new_moving(origin: Point3, endpoint: Point3, radius: f64, material: Material) -> Self {
-        let rvec = DVec3::new(radius, radius, radius);
+    pub fn new_moving(origin: Point3, endpoint: Point3, radius: f32, material: Material) -> Self {
+        let rvec = Vec3A::new(radius, radius, radius);
         let box_1 = AABB::from_points(origin - rvec, origin + rvec);
         let box_2 = AABB::from_points(endpoint - rvec, endpoint + rvec);
         let bbox = AABB::from_boxes(&box_1, &box_2);
@@ -51,11 +51,11 @@ impl Sphere {
         }
     }
 
-    pub fn position(&self, time: f64) -> Point3 {
+    pub fn position(&self, time: f32) -> Point3 {
         self.origin + time * self.movement_vec
     }
 
-    fn get_sphere_uv(p: Point3) -> (f64, f64) {
+    fn get_sphere_uv(p: Point3) -> (f32, f32) {
         // p: a given point on the sphere of radius one, centered at the origin.
         // u: returned value [0,1] of angle around the Y axis from X=-1.
         // v: returned value [0,1] of angle from Y=-1 to Y=+1.
