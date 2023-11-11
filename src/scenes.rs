@@ -12,7 +12,6 @@ use crate::{
         quad::Quad,
         sphere::Sphere,
     },
-    load_image,
     material::*,
     texture::{CheckerTexture, NoiseTexture},
     util::{
@@ -154,7 +153,7 @@ pub fn two_spheres() -> Result<()> {
 }
 
 pub fn earth() -> Result<()> {
-    let earth_texture = Lambertian::new(load_image!("assets/textures/earthmap.jpg"));
+    let earth_texture = Lambertian::new(image::open("assets/textures/earthmap.jpg").unwrap());
     let globe = Sphere::new_stationary(Point3::ZERO, 2.0, earth_texture);
 
     let mut camera = Camera::new();
@@ -540,7 +539,7 @@ pub fn next_weeks_final_scene(
     let boundary = Sphere::new_stationary(Point3::ZERO, 5000.0, Dielectric::new(1.5));
     world.add(ConstantMedium::new(boundary, 0.0001, Color::ONE));
 
-    let emat = Lambertian::new(load_image!("assets/textures/earthmap.jpg"));
+    let emat = Lambertian::new(image::open("assets/textures/earthmap.jpg").unwrap());
     world.add(Sphere::new_stationary(
         Point3::new(400.0, 200.0, 400.0),
         100.0,

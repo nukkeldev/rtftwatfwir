@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
-use load_image::Image;
-
-use crate::util::{color::Color, image::ImageT, perlin::Perlin, Point3};
+use crate::util::{color::Color, perlin::Perlin, Point3};
+use image::{DynamicImage, GenericImageView};
 
 pub trait Texture: Send + Sync {
     fn sample(&self, u: f64, v: f64, point: Point3) -> Color;
@@ -46,20 +45,25 @@ impl Texture for CheckerTexture {
     }
 }
 
-impl Texture for Image {
+impl Texture for DynamicImage {
     fn sample(&self, u: f64, v: f64, _point: Point3) -> Color {
         // DEBUGGING
-        if self.height == 0 {
+        if self.height() == 0 {
             return Color::new(0.0, 1.0, 1.0);
         };
 
         let u = u.clamp(0.0, 1.0);
         let v = 1.0 - v.clamp(0.0, 1.0);
 
-        let i = (u * self.width as f64) as usize;
-        let j = (v * self.height as f64) as usize;
+        let i = (u * self.width() as f64) as u32;
+        let j = (v * self.height() as f64) as u32;
 
-        self.get_pixel_data(i, j)
+        let color = self.get_pixel(i, j).0;
+        Color::new(
+            color[0] as f64 / 256.0,
+            color[1] as f64 / 256.0,
+            color[2] as f64 / 256.0,
+        )
     }
 }
 

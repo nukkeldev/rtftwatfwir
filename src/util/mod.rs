@@ -1,6 +1,5 @@
 pub mod all;
 pub mod color;
-pub mod image;
 pub mod interval;
 pub mod perlin;
 pub mod random;

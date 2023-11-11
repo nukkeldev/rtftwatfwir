@@ -2,7 +2,7 @@ use glam::DVec3;
 
 use super::Point3;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Ray {
     pub origin: Point3,
     pub direction: DVec3,
