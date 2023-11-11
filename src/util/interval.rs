@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::{f64::INFINITY, ops::Add};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Interval {
@@ -7,7 +7,9 @@ pub struct Interval {
 }
 
 impl Interval {
-    pub fn new(min: f64, max: f64) -> Self {
+    pub const UNIVERSE: Self = Interval::new(-INFINITY, INFINITY);
+
+    pub const fn new(min: f64, max: f64) -> Self {
         Self { min, max }
     }
 

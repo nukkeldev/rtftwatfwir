@@ -8,6 +8,7 @@ use crate::{
 
 use self::{hittable_list::HittableList, quad::Quad};
 
+pub mod constant_medium;
 pub mod hittable_list;
 pub mod instance;
 pub mod quad;

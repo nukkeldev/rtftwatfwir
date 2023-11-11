@@ -17,6 +17,7 @@ pub enum Material {
     Metal(Metal),
     Dielectric(Dielectric),
     DiffuseLight(DiffuseLight),
+    Isotropic(Isotropic),
 }
 
 impl MaterialT for Material {
@@ -26,6 +27,7 @@ impl MaterialT for Material {
             Material::Metal(m) => m.scatter(r_in, rec),
             Material::Dielectric(d) => d.scatter(r_in, rec),
             Material::DiffuseLight(dl) => dl.scatter(r_in, rec),
+            Material::Isotropic(i) => i.scatter(r_in, rec),
         }
     }
 
@@ -35,19 +37,20 @@ impl MaterialT for Material {
             Material::Metal(m) => m.emitted(u, v, p),
             Material::Dielectric(d) => d.emitted(u, v, p),
             Material::DiffuseLight(dl) => dl.emitted(u, v, p),
+            Material::Isotropic(i) => i.emitted(u, v, p),
         }
     }
 }
 
 #[derive(Clone)]
 pub struct Lambertian {
-    pub texture: Arc<dyn Texture>,
+    pub albedo: Arc<dyn Texture>,
 }
 
 impl Lambertian {
-    pub fn new(texture: impl Texture + 'static) -> Material {
+    pub fn new(a: impl Texture + 'static) -> Material {
         Material::Lambertian(Self {
-            texture: Arc::new(texture),
+            albedo: Arc::new(a),
         })
     }
 }
@@ -62,7 +65,7 @@ impl MaterialT for Lambertian {
 
         Some((
             Ray::new_with_time(rec.p, scatter_dir, r_in.time),
-            self.texture.sample(rec.u, rec.v, rec.p),
+            self.albedo.sample(rec.u, rec.v, rec.p),
         ))
     }
 }
@@ -163,5 +166,27 @@ impl MaterialT for DiffuseLight {
 
     fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
         self.emit.sample(u, v, p)
+    }
+}
+
+#[derive(Clone)]
+pub struct Isotropic {
+    albedo: Arc<dyn Texture>,
+}
+
+impl Isotropic {
+    pub fn new(a: impl Texture + 'static) -> Material {
+        Material::Isotropic(Self {
+            albedo: Arc::new(a),
+        })
+    }
+}
+
+impl MaterialT for Isotropic {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)> {
+        let scattered = Ray::new_with_time(rec.p, random_unit_vector(), r_in.time);
+        let attenuation = self.albedo.sample(rec.u, rec.v, rec.p);
+
+        Some((scattered, attenuation))
     }
 }
