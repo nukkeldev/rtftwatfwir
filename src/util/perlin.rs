@@ -1,15 +1,12 @@
 use glam::DVec3;
+use rand::{seq::SliceRandom, thread_rng};
 
-use super::{
-    hermitian_smoothing,
-    random::{random_int_in_range, random_unit_vector},
-    Point3,
-};
+use super::{hermitian_smoothing, random::random_vec_in_range, Point3};
 
 const POINT_COUNT: usize = 256;
 
 pub struct Perlin {
-    ran_vec: [DVec3; POINT_COUNT],
+    ranvec: [DVec3; POINT_COUNT],
     perm_x: [i32; POINT_COUNT],
     perm_y: [i32; POINT_COUNT],
     perm_z: [i32; POINT_COUNT],
@@ -17,13 +14,13 @@ pub struct Perlin {
 
 impl Perlin {
     pub fn new() -> Self {
-        let mut ran_vec = [DVec3::ZERO; POINT_COUNT];
+        let mut ranvec = [DVec3::ZERO; POINT_COUNT];
         for i in 0..POINT_COUNT {
-            ran_vec[i] = random_unit_vector();
+            ranvec[i] = random_vec_in_range(-1.0, 1.0).normalize();
         }
 
         Self {
-            ran_vec,
+            ranvec,
             perm_x: Self::generate_perm(),
             perm_y: Self::generate_perm(),
             perm_z: Self::generate_perm(),
@@ -43,10 +40,10 @@ impl Perlin {
         for di in 0..2 {
             for dj in 0..2 {
                 for dk in 0..2 {
-                    c[di][dj][dk] = self.ran_vec[(self.perm_x[((i + di as i32) & 255) as usize]
-                        ^ self.perm_y[((j + dj as i32) & 255) as usize]
-                        ^ self.perm_z[((k + dk as i32) & 255) as usize])
-                        as usize];
+                    let ix = self.perm_x[((i + di as i32) & 255) as usize];
+                    let iy = self.perm_y[((j + dj as i32) & 255) as usize];
+                    let iz = self.perm_z[((k + dk as i32) & 255) as usize];
+                    c[di][dj][dk] = self.ranvec[(ix ^ iy ^ iz) as usize];
                 }
             }
         }
@@ -54,19 +51,14 @@ impl Perlin {
         Self::perlin_interp(c, u, v, w)
     }
 
-    pub fn terb(&self, p: Point3) -> f64 {
-        self._terb(p, 7)
-    }
-
-    fn _terb(&self, p: Point3, depth: usize) -> f64 {
+    pub fn turb(&self, mut p: Point3, depth: usize) -> f64 {
         let mut acc = 0.0;
-        let mut temp_p = p;
         let mut weight = 1.0;
 
         for _ in 0..depth {
-            acc += weight * self.noise(temp_p);
+            acc += weight * self.noise(p);
             weight *= 0.5;
-            temp_p *= 2.0;
+            p *= 2.0;
         }
 
         acc.abs()
@@ -79,9 +71,7 @@ impl Perlin {
             p[i] = i as i32;
         }
 
-        for i in (1..POINT_COUNT).rev() {
-            p.swap(i, random_int_in_range(0, i as i32) as usize);
-        }
+        p.shuffle(&mut thread_rng());
 
         p
     }

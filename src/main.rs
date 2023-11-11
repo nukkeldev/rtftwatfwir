@@ -2,5 +2,5 @@ use anyhow::Result;
 use ray_tracing::scenes;
 
 fn main() -> Result<()> {
-    scenes::cornell_smoke()
+    scenes::next_weeks_final_scene_mid_res()
 }
