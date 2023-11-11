@@ -1,12 +1,14 @@
-use std::io::Write;
+use std::f64::INFINITY;
+use std::fs::OpenOptions;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Instant;
-use std::{f64::INFINITY, fs::File};
 
 use anyhow::Result;
 use glam::DVec3;
-use rayon::prelude::{IntoParallelIterator, ParallelIterator};
+use memmap2::MmapMut;
+use rayon::prelude::{IndexedParallelIterator, ParallelIterator};
+use rayon::slice::ParallelSliceMut;
 
 use crate::hittable::Hittable;
 use crate::material::MaterialT;
@@ -183,56 +185,61 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) -> Result<()> {
         self.initialize();
 
-        let mut file = File::create("image.ppm")?;
+        let total_pixels = self.image_height * self.image_width;
+        let pixels_per_percent = total_pixels / 100;
 
-        write!(
-            file,
-            "P3\n{} {}\n255\n",
-            self.image_width, self.image_height
-        )?;
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open("image.raw")?;
+        file.set_len((total_pixels * 3) as u64)?;
+
+        let mut mmap = unsafe { MmapMut::map_mut(&file)? };
+        let indices = (0..self.image_height)
+            .flat_map(|j| (0..self.image_width).map(move |i| (i, j)))
+            .collect::<Vec<_>>();
+        let pixels = mmap.par_chunks_mut(3).zip(indices);
 
         let now = Instant::now();
 
-        let cam = &*self;
-        let image_height = cam.image_height;
-        let image_width = cam.image_width;
-        let (sender, recv) = channel();
+        let (sender, recv) = channel::<()>();
 
         thread::spawn(move || {
-            let mut rows_done = 0.0;
+            let mut pixels_done = 0;
             loop {
                 if let Ok(_) = recv.recv() {
-                    rows_done += 1.0;
-                    println!("{}%", rows_done / image_height as f64 * 100.0);
+                    pixels_done += 1;
+                    if pixels_done % pixels_per_percent == 0 {
+                        println!("{}%", pixels_done as f64 / total_pixels as f64 * 100.0);
+                    }
                 } else {
                     println!("Rendered in {} seconds!", now.elapsed().as_secs_f32());
-                    println!("Writing {} pixels...", rows_done as i32 * image_width);
+                    println!("Writing {total_pixels} pixels...");
                     break;
                 }
             }
         });
 
-        let colors = (0..self.image_height)
-            .into_par_iter()
-            .flat_map(|j| {
-                let row = (0..self.image_width).into_par_iter().map(move |i| {
-                    let mut pixel_color = Color::ZERO;
-                    for _ in 0..cam.samples_per_pixel {
-                        let r = cam.get_ray(i, j);
-                        pixel_color += cam.ray_color(&r, world, cam.max_depth);
-                    }
+        pixels.for_each(|(out, (i, j))| {
+            let mut pixel_color = Color::ZERO;
+            for _ in 0..self.samples_per_pixel {
+                let r = self.get_ray(i, j);
+                pixel_color += self.ray_color(&r, world, self.max_depth);
+            }
 
-                    pixel_color
-                });
-                sender.clone().send(()).unwrap();
-                row
-            })
-            .collect::<Vec<_>>();
+            out.copy_from_slice(&convert_color(pixel_color, self.samples_per_pixel));
+            sender.send(()).unwrap();
+        });
         drop(sender);
 
-        for c in colors {
-            write_color(&mut file, c, self.samples_per_pixel);
-        }
+        image::save_buffer(
+            "image.jpg",
+            &mmap,
+            self.image_width as u32,
+            self.image_height as u32,
+            image::ColorType::Rgb8,
+        )?;
 
         println!("Completed in {}s.", now.elapsed().as_secs_f32());
 
