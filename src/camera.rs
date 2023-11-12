@@ -1,5 +1,6 @@
 use std::f32::INFINITY;
 use std::fs::OpenOptions;
+use std::path::Path;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Instant;
@@ -8,7 +9,7 @@ use anyhow::Result;
 use glam::Vec3A;
 use memmap2::MmapMut;
 use rayon::prelude::{IndexedParallelIterator, ParallelIterator};
-use rayon::slice::ParallelSliceMut;
+use rayon::slice::{ParallelSlice, ParallelSliceMut};
 
 use crate::hittable::Hittable;
 use crate::material::MaterialT;
@@ -187,22 +188,42 @@ impl Camera {
 
         let total_pixels = self.image_height * self.image_width;
         let pixels_per_percent = total_pixels / 100;
+        let file_size = (total_pixels * 3) as u64;
 
-        let file = OpenOptions::new()
+        let mut indices = (0..self.image_height)
+            .flat_map(|j| (0..self.image_width).map(move |i| (false, (i, j))))
+            .collect::<Vec<_>>();
+
+        let mut file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open("image.raw")?;
-        file.set_len((total_pixels * 3) as u64)?;
+            .open("_image.raw")?;
 
+        if Path::new("_image.raw").exists() {
+            let contents = std::fs::read("_image.raw")?;
+            if contents.len() == file_size as usize {
+                indices = contents
+                    .par_chunks(3)
+                    .zip(indices)
+                    .map(|(c, (_, p))| (c != &[0, 0, 0], p))
+                    .collect();
+            } else {
+                std::fs::remove_file("_image.raw")?;
+                file = OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .create(true)
+                    .open("_image.raw")?;
+            }
+        }
+
+        file.set_len(file_size)?;
         let mut mmap = unsafe { MmapMut::map_mut(&file)? };
-        let indices = (0..self.image_height)
-            .flat_map(|j| (0..self.image_width).map(move |i| (i, j)))
-            .collect::<Vec<_>>();
+
         let pixels = mmap.par_chunks_mut(3).zip(indices);
 
         let now = Instant::now();
-
         let (sender, recv) = channel::<()>();
 
         thread::spawn(move || {
@@ -211,7 +232,10 @@ impl Camera {
                 if let Ok(_) = recv.recv() {
                     pixels_done += 1;
                     if pixels_done % pixels_per_percent == 0 {
-                        println!("{}%", pixels_done as f32 / total_pixels as f32 * 100.0);
+                        println!(
+                            "{}%",
+                            (pixels_done as f32 / total_pixels as f32 * 100.0) as u8
+                        );
                     }
                 } else {
                     println!("Rendered in {} seconds!", now.elapsed().as_secs_f32());
@@ -221,7 +245,12 @@ impl Camera {
             }
         });
 
-        pixels.for_each(|(out, (i, j))| {
+        pixels.for_each(|(out, (done, (i, j)))| {
+            if done {
+                sender.send(()).unwrap();
+                return;
+            }
+
             let mut pixel_color = Color::ZERO;
             for _ in 0..self.samples_per_pixel {
                 let r = self.get_ray(i, j);
@@ -240,6 +269,9 @@ impl Camera {
             self.image_height as u32,
             image::ColorType::Rgb8,
         )?;
+
+        drop(mmap);
+        std::fs::remove_file("_image.raw")?;
 
         println!("Completed in {}s.", now.elapsed().as_secs_f32());
 

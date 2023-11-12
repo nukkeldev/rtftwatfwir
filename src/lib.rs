@@ -7,3 +7,5 @@ pub mod material;
 pub mod scenes;
 pub mod texture;
 pub mod util;
+
+pub const SEED: u64 = 2;
