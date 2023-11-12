@@ -8,5 +8,5 @@ fn main() -> Result<()> {
         .build_global()
         .unwrap();
 
-    scenes::next_weeks_final_scene_low_res()
+    scenes::random_spheres()
 }

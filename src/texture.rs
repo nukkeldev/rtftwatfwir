@@ -55,8 +55,8 @@ impl Texture for DynamicImage {
         let u = u.clamp(0.0, 1.0);
         let v = 1.0 - v.clamp(0.0, 1.0);
 
-        let i = (u * self.width() as f32) as u32;
-        let j = (v * self.height() as f32) as u32;
+        let i = (u * self.width() as f32).min(self.width() as f32 - 1.0) as u32;
+        let j = (v * self.height() as f32).min(self.height() as f32 - 1.0) as u32;
 
         let color = self.get_pixel(i, j).0;
         Color::new(

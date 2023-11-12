@@ -15,10 +15,10 @@ pub struct BVHNode {
 
 impl BVHNode {
     pub fn from_list(hittable_list: &HittableList) -> Self {
-        Self::new(&hittable_list.objects[..])
+        Self::new(&hittable_list.objects[..], 0)
     }
 
-    fn new(objects: &[Arc<dyn Hittable>]) -> Self {
+    fn new(objects: &[Arc<dyn Hittable>], depth: usize) -> Self {
         let axis = random_int_in_range(0, 2) as usize;
 
         match objects.len() {
@@ -52,8 +52,20 @@ impl BVHNode {
                 });
 
                 let mid = objects.len() / 2;
-                let left = Arc::new(BVHNode::new(&objects[0..mid]));
-                let right = Arc::new(BVHNode::new(&objects[mid..objects.len()]));
+                let (left_objects, right_objects) = objects.split_at(mid);
+
+                let (left, right) = if depth < 10 {
+                    rayon::join(
+                        || Arc::new(BVHNode::new(left_objects, depth + 1)),
+                        || Arc::new(BVHNode::new(right_objects, depth + 1)),
+                    )
+                } else {
+                    (
+                        Arc::new(BVHNode::new(left_objects, depth + 1)),
+                        Arc::new(BVHNode::new(right_objects, depth + 1)),
+                    )
+                };
+
                 let bbox = AABB::from_boxes(left.bounding_box(), right.bounding_box());
 
                 Self { left, right, bbox }
