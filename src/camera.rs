@@ -162,22 +162,28 @@ impl Camera {
         (px * self.pixel_delta_u) + (py * self.pixel_delta_v)
     }
 
-    fn ray_color(&self, r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
-        if depth <= 0 {
-            return Color::ZERO;
-        }
+    fn ray_color(&self, mut r: Ray, world: &dyn Hittable, max_depth: i32) -> Color {
+        let mut acc = Vec3A::ZERO;
+        let mut aten = Vec3A::ONE;
 
-        if let Some(rec) = world.hit(r, Interval::new(0.001, INFINITY)) {
-            let color_from_emmision = rec.material.emitted(rec.u, rec.v, rec.p);
+        let mut bounces = 0;
 
-            let color_from_scatter =
-                if let Some((scattered, attenunation)) = rec.material.scatter(r, &rec) {
-                    attenunation * self.ray_color(&scattered, world, depth - 1)
-                } else {
-                    return color_from_emmision;
-                };
+        while let Some(rec) = world.hit(&r, Interval::new(0.001, INFINITY)) {
+            // Color from emission
+            acc += aten * rec.material.emitted(rec.u, rec.v, rec.p);
 
-            return color_from_emmision + color_from_scatter;
+            if let Some((scattered, attenunation)) = rec.material.scatter(&r, &rec) {
+                r = scattered;
+                aten *= attenunation;
+            } else {
+                return acc;
+            };
+
+            if bounces >= max_depth {
+                return acc;
+            }
+
+            bounces += 1;
         }
 
         self.background
@@ -254,7 +260,7 @@ impl Camera {
             let mut pixel_color = Color::ZERO;
             for _ in 0..self.samples_per_pixel {
                 let r = self.get_ray(i, j);
-                pixel_color += self.ray_color(&r, world, self.max_depth);
+                pixel_color += self.ray_color(r, world, self.max_depth);
             }
 
             out.copy_from_slice(&convert_color(pixel_color, self.samples_per_pixel));
